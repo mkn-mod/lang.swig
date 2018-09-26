@@ -2,7 +2,7 @@
 
 ** swig maiken module **
 
-Compile/Link phase module
+Compile phase module
 
 ## Prerequisites
   [maiken](https://github.com/mkn/mkn)
@@ -20,11 +20,6 @@ mod:
     objdir: $dir        # location of generated source file - default src directory
     lang:               # default "cpp"
 
-        NodeValidator("src", 1), // TODO : add regex
-        NodeValidator("inc"),   // TODO : add regex
-        NodeValidator("conf"),
-        NodeValidator("outdir"),
-        NodeValidator("objdir"),
 ```
 
 ## Building
