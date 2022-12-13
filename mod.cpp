@@ -28,11 +28,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-#include "maiken.hpp"
-#define KUL_EXPORT
-#undef _KUL_DEFS_HPP_
-#include "kul/defs.hpp"
+#include "maiken/module/init.hpp"
 
 #include <unordered_set>
 
@@ -43,12 +39,12 @@ class SwigModule : public maiken::Module {
  private:
   bool pyconfig_found = 0;
    std::string HOME, SWIG = "swig",
-               PATH = kul::env::GET("PATH");
+               PATH = mkn::kul::env::GET("PATH");
 
  protected:
 
   static void VALIDATE_NODE(const YAML::Node& node) {
-    using namespace kul::yaml;
+    using namespace mkn::kul::yaml;
     Validator(
       {
         NodeValidator("src", 1), // TODO : add regex
@@ -62,21 +58,21 @@ class SwigModule : public maiken::Module {
 
  public:
   SwigModule(){
-    if(kul::env::EXISTS("SWIG")) SWIG = kul::env::GET("SWIG");
+    if(mkn::kul::env::EXISTS("SWIG")) SWIG = mkn::kul::env::GET("SWIG");
   }
   void compile(maiken::Application& a, const YAML::Node& node)
       KTHROW(std::exception) override {
     VALIDATE_NODE(node);
 
-    std::string conf = "-python -py3 -c++ -modern -new_repr";
+    std::string conf = "-python -py3 -c++";
     if(node["conf"]) conf = node["conf"].Scalar();
     std::stringstream incs;
     if(node["inc"])
-      for(const auto inc : kul::cli::asArgs(node["inc"].Scalar()))
+      for(const auto inc : mkn::kul::cli::asArgs(node["inc"].Scalar()))
         incs << "-I" << inc << " ";
 
-    for(const auto source : kul::cli::asArgs(node["src"].Scalar())){
-      kul::File src(source);
+    for(const auto source : mkn::kul::cli::asArgs(node["src"].Scalar())){
+      mkn::kul::File src(source);
       if(!src) {
         KERR << "WARNING: Source does not exist: " << src.full();
         continue;
@@ -84,10 +80,10 @@ class SwigModule : public maiken::Module {
       std::string outdir = src.dir().escm(), objdir = src.dir().escm();
       if(node["outdir"]) outdir = node["outdir"].Scalar();
       if(node["objdir"]) outdir = node["objdir"].Scalar();
-      kul::Process p(SWIG);
+      mkn::kul::Process p(SWIG);
       p << conf << incs.str();
       p << "-outdir" << outdir;
-      p << "-o" << kul::File(src.name()+".cpp", objdir).full() << src.escm();
+      p << "-o" << mkn::kul::File(src.name()+".cpp", objdir).escm() << src.escm();
       KLOG(DBG) << p;
       p.start();
     }
