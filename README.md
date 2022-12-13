@@ -15,7 +15,7 @@ mod:
   compile:              # calls swig-config --includes
     src: $file1 $file2  # no default, one file required
     conf: $str          # default: "-python -py3 -c++ -modern -new_repr"
-    args: $str          # default "" - add to swig command
+    inc: $dir0 $dir1    # add directories for header scanning
     outdir: $dir        # location of generated integration files - default src directory
     objdir: $dir        # location of generated source file - default src directory
     lang:               # default "cpp"
