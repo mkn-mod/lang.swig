@@ -18,6 +18,7 @@ mod:
     inc: $dir0 $dir1    # add directories for header scanning
     outdir: $dir        # location of generated integration files - default src directory
     objdir: $dir        # location of generated source file - default src directory
+    outfile: $file      # filename override for generated source file
     lang:               # default "cpp"
 
 ```
