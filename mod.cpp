@@ -52,6 +52,7 @@ class SwigModule : public maiken::Module {
         NodeValidator("conf"),
         NodeValidator("outdir"),
         NodeValidator("objdir"),
+        NodeValidator("objfile"),
       }
     ).validate(node);
   }
@@ -77,13 +78,18 @@ class SwigModule : public maiken::Module {
         KERR << "WARNING: Source does not exist: " << src.full();
         continue;
       }
+
       std::string outdir = src.dir().escm(), objdir = src.dir().escm();
       if(node["outdir"]) outdir = node["outdir"].Scalar();
       if(node["objdir"]) outdir = node["objdir"].Scalar();
+
+      mkn::kul::File objfile(src.name()+".cpp", objdir);
+      if(node["objfile"]) objfile = mkn::kul::File(node["objfile"].Scalar(), objdir);
+
       mkn::kul::Process p(SWIG);
       p << conf << incs.str();
       p << "-outdir" << outdir;
-      p << "-o" << mkn::kul::File(src.name()+".cpp", objdir).escm() << src.escm();
+      p << "-o" << objfile.escm() << src.escm();
       KLOG(DBG) << p;
       p.start();
     }
