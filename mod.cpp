@@ -28,6 +28,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#include <cstdint>
 #include "maiken/module/init.hpp"
 
 #include <unordered_set>
@@ -65,7 +66,7 @@ class SwigModule : public maiken::Module {
       KTHROW(std::exception) override {
     VALIDATE_NODE(node);
 
-    std::string conf = "-python -py3 -c++";
+    std::string conf = "-python -c++";
     if(node["conf"]) conf = node["conf"].Scalar();
     std::stringstream incs;
     if(node["inc"])
@@ -93,8 +94,43 @@ class SwigModule : public maiken::Module {
       KLOG(DBG) << p;
       p.start();
     }
-  }
 
+    a.m_cInfo.lib_ext = mkn::kul::String::LINES(extension())[0];  // drop EOL
+    a.m_cInfo.lib_prefix = "";
+      KLOG(TRC);
+    a.mode(maiken::compiler::Mode::SHAR);
+      KLOG(TRC);
+  }
+protected:
+  std::string extension(){
+      auto pyconfig = mkn::kul::env::GET("PY3_CONFIG", "python3-config");
+
+#if defined(_WIN32)
+      auto pyconfig_found = false;  // doesn't exist on windows (generally)
+#else
+      auto pyconfig_found = mkn::kul::env::WHICH(pyconfig);
+#endif
+
+      std::string extension;
+      if (pyconfig_found) {
+        // mkn::kul::os::PushDir pushd(a.project().dir());
+        mkn::kul::Process p(pyconfig);
+        mkn::kul::ProcessCapture pc(p);
+        p << "--extension-suffix";
+        p.start();
+        extension = pc.outs();
+      } else {
+        auto py = mkn::kul::env::GET("PYTHON", "python3");
+        mkn::kul::Process p(py);
+        mkn::kul::ProcessCapture pc(p);
+        p << "-c"
+          << "\"import sysconfig; "
+             "print(sysconfig.get_config_var('EXT_SUFFIX'))\"";
+        p.start();
+        extension = pc.outs();
+      }
+      return extension;
+  }
 };
 }  // namespace lang
 }  // namespace mkn

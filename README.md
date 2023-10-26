@@ -14,7 +14,7 @@ mod:
 - name: lang.swig
   compile:              # calls swig-config --includes
     src: $file1 $file2  # no default, one file required
-    conf: $str          # default: "-python -py3 -c++ -modern -new_repr"
+    conf: $str          # default: "-python -c++"
     inc: $dir0 $dir1    # add directories for header scanning
     outdir: $dir        # location of generated integration files - default src directory
     objdir: $dir        # location of generated source file - default src directory
@@ -52,3 +52,13 @@ mod:
     Type            string
     Default         ""
     Description     If set - uses string as command call instead of "swig"
+
+    Key             PYTHON
+    Type            string
+    Default         "python3"
+    Description     Name of python3 interpreter
+
+    Key             PY3_CONFIG
+    Type            string
+    Default         "python3-config"
+    Description     Used for python info if found
