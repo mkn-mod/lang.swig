@@ -1,3 +1,4 @@
+#! clean build -dtO
 
 name: lang.swig
 version: master
@@ -13,22 +14,15 @@ if_arg:
     shared: -DKUL_SHARED
 
 profile:
-  - name: base
-    dep:
-      - name: mkn
-        profile: mod
-        local: ${maiken_location}
-        scm: ${maiken_scm}
+- name: base
+  dep: mkn&${maiken_location}(${maiken_scm})[mod]
 
-  - name: test
-    parent: base
-    main: test.cpp
-    if_arg:
-      win_shared: -DYAML_CPP_DLL
+- name: test
+  parent: base
+  main: test.cpp
+  if_arg:
+    win_shared: -DYAML_CPP_DLL
 
-  - name: format
-    mod:
-    - name: clang.format
-      init:
-        style: google
-        paths: .
+- name: format
+  mod: |
+    clang.format{init{style: google, paths: .}}
