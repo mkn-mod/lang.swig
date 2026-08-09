@@ -10,7 +10,7 @@ parent: base
 src: mod.cpp
 mode: shared
 if_arg:
-    win_shared: -DYAML_CPP_DLL
+    win_static: -DYAML_CPP_STATIC_DEFINE
     shared: -DKUL_SHARED
 
 profile:
@@ -21,7 +21,7 @@ profile:
   parent: base
   main: test.cpp
   if_arg:
-    win_shared: -DYAML_CPP_DLL
+    win_static: -DYAML_CPP_STATIC_DEFINE
 
 - name: format
   mod: |
