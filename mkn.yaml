@@ -12,6 +12,9 @@ if_arg:
 profile:
 - name: base
   dep: mkn.mod
+  if_dep:
+    bsd: parse.yaml[lib]
+    win: parse.yaml[lib]
 
 - name: format
   mod: |
