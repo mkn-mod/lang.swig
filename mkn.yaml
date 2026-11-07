@@ -2,26 +2,19 @@
 
 name: lang.swig
 version: master
-property:
-    maiken_location: ${MKN_HOME}/app/mkn/${version}
-    maiken_scm: https://github.com/mkn/mkn
-
 parent: base
 src: mod.cpp
 mode: shared
 if_arg:
     win_static: -DYAML_CPP_STATIC_DEFINE
-    shared: -DKUL_SHARED
+    shared: -DMKN_KUL_SHARED
 
 profile:
 - name: base
-  dep: mkn&${maiken_location}(${maiken_scm})[mod]
-
-- name: test
-  parent: base
-  main: test.cpp
-  if_arg:
-    win_static: -DYAML_CPP_STATIC_DEFINE
+  dep: mkn.mod
+  if_dep:
+    bsd: parse.yaml[lib]
+    win: parse.yaml[lib]
 
 - name: format
   mod: |

@@ -1,5 +1,5 @@
 /**
-Copyright (c) 2013, Philip Deegan.
+Copyright (c) 2026, Philip Deegan.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,21 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "maiken/module/init.hpp"
+#include "mkn/mod/init.hpp"
+
+#include "mkn/kul/cli.hpp"
+#include "mkn/kul/log.hpp"
+#include "mkn/kul/os.hpp"
+#include "mkn/kul/proc.hpp"
+#include "mkn/kul/string.hpp"
+#include "mkn/kul/yaml.hpp"
 
 #include <cstdint>
 #include <unordered_set>
 
 namespace mkn::lang {
 
-class SwigModule : public maiken::Module {
+class SwigModule : public mkn::mod::Module {
   private:
     bool pyconfig_found = 0;
     std::string HOME, SWIG = "swig", PATH = mkn::kul::env::GET("PATH");
@@ -59,9 +66,8 @@ class SwigModule : public maiken::Module {
         if (mkn::kul::env::EXISTS("SWIG"))
             SWIG = mkn::kul::env::GET("SWIG");
     }
-    void compile(maiken::Application& a, const YAML::Node& node)
+    void compile(mkn::mod::Context& ctx, const YAML::Node& node)
         KTHROW(std::exception) override {
-
         VALIDATE_NODE(node);
 
         std::string conf = "-python -c++";
@@ -69,10 +75,10 @@ class SwigModule : public maiken::Module {
             conf = node["conf"].Scalar();
         std::stringstream incs;
         if (node["inc"])
-            for (const auto inc : mkn::kul::cli::asArgs(node["inc"].Scalar()))
+            for (auto const& inc : mkn::kul::cli::asArgs(node["inc"].Scalar()))
                 incs << "-I" << inc << " ";
 
-        for (const auto source : mkn::kul::cli::asArgs(node["src"].Scalar())) {
+        for (auto const& source : mkn::kul::cli::asArgs(node["src"].Scalar())) {
             mkn::kul::File src(source);
             if (!src) {
                 KERR << "WARNING: Source does not exist: " << src.full();
@@ -97,10 +103,12 @@ class SwigModule : public maiken::Module {
             p.start();
         }
 
-        a.m_cInfo.lib_ext = mkn::kul::String::LINES(extension())[0]; // drop EOL
-        a.m_cInfo.lib_prefix = "";
+        auto info = ctx.state().compileEnv.compilationInfo;
+        info.lib_ext = mkn::kul::String::LINES(extension())[0]; // drop EOL
+        info.lib_prefix = "";
+        ctx.compilerState().add(mkn::mod::CompilationInfoInput{info});
         KLOG(TRC);
-        a.mode(maiken::compiler::Mode::SHAR);
+        ctx.compilerState().add(mkn::mod::BuildModeInput{mkn::mod::Mode::SHAR});
         KLOG(TRC);
     }
 
@@ -138,10 +146,10 @@ class SwigModule : public maiken::Module {
 
 } // namespace mkn::lang
 
-extern "C" MKN_KUL_PUBLISH maiken::Module* maiken_module_construct() {
+extern "C" MKN_KUL_PUBLISH mkn::mod::Module* maiken_module_construct() {
     return new mkn::lang::SwigModule;
 }
 
-extern "C" MKN_KUL_PUBLISH void maiken_module_destruct(maiken::Module* p) {
+extern "C" MKN_KUL_PUBLISH void maiken_module_destruct(mkn::mod::Module* p) {
     delete p;
 }
