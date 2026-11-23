@@ -4,21 +4,16 @@ name: lang.swig
 property:
   # dependency versions: master on master, latest on latest (a bare dep is the default branch)
   mkn.mod.version: master
-  parse.yaml.version: master
 version: master
 parent: base
 src: mod.cpp
 mode: shared
 if_arg:
-    win_static: -DYAML_CPP_STATIC_DEFINE
     shared: -DMKN_KUL_SHARED
 
 profile:
 - name: base
   dep: mkn.mod#${mkn.mod.version}
-  if_dep:
-    bsd: parse.yaml#${parse.yaml.version}[lib]
-    win: parse.yaml#${parse.yaml.version}[lib]
 
 - name: format
   mod: |
