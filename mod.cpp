@@ -29,13 +29,13 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "mkn/mod/init.hpp"
+#include "mkn/kul/bon.hpp"
 
 #include "mkn/kul/cli.hpp"
 #include "mkn/kul/log.hpp"
 #include "mkn/kul/os.hpp"
 #include "mkn/kul/proc.hpp"
 #include "mkn/kul/string.hpp"
-#include "mkn/kul/yaml.hpp"
 
 #include <cstdint>
 #include <unordered_set>
@@ -48,17 +48,10 @@ class SwigModule : public mkn::mod::Module {
     std::string HOME, SWIG = "swig", PATH = mkn::kul::env::GET("PATH");
 
   protected:
-    static void VALIDATE_NODE(const YAML::Node& node) {
-        using namespace mkn::kul::yaml;
-        Validator({
-                      NodeValidator("src", 1), // TODO : add regex
-                      NodeValidator("inc"),    // TODO : add regex
-                      NodeValidator("conf"),
-                      NodeValidator("outdir"),
-                      NodeValidator("objdir"),
-                      NodeValidator("objfile"),
-                  })
-            .validate(node);
+    static void VALIDATE_NODE(mkn::mod::Node const& node) {
+        mkn::kul::bon::validate(node, {"src", "inc", "conf", "outdir", "objdir", "objfile"});
+        if (!node.find("src"))  // TODO : add regex (src, inc)
+            KEXCEPT(mkn::kul::Exception, "lang.swig: src is required");
     }
 
   public:
@@ -66,19 +59,19 @@ class SwigModule : public mkn::mod::Module {
         if (mkn::kul::env::EXISTS("SWIG"))
             SWIG = mkn::kul::env::GET("SWIG");
     }
-    void compile(mkn::mod::Context& ctx, const YAML::Node& node)
+    void compile(mkn::mod::Context& ctx, mkn::mod::Node const& node)
         KTHROW(std::exception) override {
         VALIDATE_NODE(node);
 
         std::string conf = "-python -c++";
-        if (node["conf"])
-            conf = node["conf"].Scalar();
+        if (node.find("conf"))
+            conf = node["conf"].str();
         std::stringstream incs;
-        if (node["inc"])
-            for (auto const& inc : mkn::kul::cli::asArgs(node["inc"].Scalar()))
+        if (node.find("inc"))
+            for (auto const& inc : mkn::kul::cli::asArgs(node["inc"].str()))
                 incs << "-I" << inc << " ";
 
-        for (auto const& source : mkn::kul::cli::asArgs(node["src"].Scalar())) {
+        for (auto const& source : mkn::kul::cli::asArgs(node["src"].str())) {
             mkn::kul::File src(source);
             if (!src) {
                 KERR << "WARNING: Source does not exist: " << src.full();
@@ -86,14 +79,14 @@ class SwigModule : public mkn::mod::Module {
             }
 
             std::string outdir = src.dir().escm(), objdir = src.dir().escm();
-            if (node["outdir"])
-                outdir = node["outdir"].Scalar();
-            if (node["objdir"])
-                outdir = node["objdir"].Scalar();
+            if (node.find("outdir"))
+                outdir = node["outdir"].str();
+            if (node.find("objdir"))
+                outdir = node["objdir"].str();
 
             mkn::kul::File objfile(src.name() + ".cpp", objdir);
-            if (node["objfile"])
-                objfile = mkn::kul::File(node["objfile"].Scalar(), objdir);
+            if (node.find("objfile"))
+                objfile = mkn::kul::File(node["objfile"].str(), objdir);
 
             mkn::kul::Process p(SWIG);
             p << conf << incs.str();
