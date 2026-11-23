@@ -1,6 +1,10 @@
 #! clean build -dtO
 
 name: lang.swig
+property:
+  # dependency versions: master on master, latest on latest (a bare dep is the default branch)
+  mkn.mod.version: master
+  parse.yaml.version: master
 version: master
 parent: base
 src: mod.cpp
@@ -11,11 +15,11 @@ if_arg:
 
 profile:
 - name: base
-  dep: mkn.mod
+  dep: mkn.mod#${mkn.mod.version}
   if_dep:
-    bsd: parse.yaml[lib]
-    win: parse.yaml[lib]
+    bsd: parse.yaml#${parse.yaml.version}[lib]
+    win: parse.yaml#${parse.yaml.version}[lib]
 
 - name: format
   mod: |
-    clang.format{init{style: google, paths: .}}
+    clang.format#master{init{style: google, paths: .}}
